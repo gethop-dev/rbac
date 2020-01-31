@@ -6,7 +6,10 @@
   :min-lein-version "2.9.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [org.clojure/java.jdbc "0.7.9"]
-                 [org.postgresql/postgresql "42.2.5"]]
+                 [org.postgresql/postgresql "42.2.5"]
+                 [org.clojure/core.cache "0.7.1"]
+                 [metosin/spec-tools "0.9.2"]
+                 [magnet/sql-utils "0.4.6"]]
   :deploy-repositories [["snapshots" {:url "https://clojars.org/repo"
                                       :username :env/clojars_username
                                       :password :env/clojars_password
