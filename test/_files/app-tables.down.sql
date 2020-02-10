@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS appuser CASCADE;
+-- ;;
+DROP TABLE IF EXISTS resource CASCADE;
+-- ;;
