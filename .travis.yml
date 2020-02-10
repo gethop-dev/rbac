@@ -1,6 +1,10 @@
 language: clojure
 lein: 2.9.0
 dist: xenial
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database rbac;' -U postgres
 jdk:
   -openjdk8
 script: lein do cljfmt check, eastwood, test :all
