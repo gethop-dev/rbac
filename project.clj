@@ -1,6 +1,6 @@
-(defproject rbac "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject magnet/rbac "0.1.0-SNAPSHOT"
+  :description "A Clojure library designed to provide role-based access control (RBAC)"
+  :url "https://github.com/magnetcoop/rbac"
   :license {:name "Mozilla Public Licence 2.0"
             :url "https://www.mozilla.org/en-US/MPL/2.0/"}
   :min-lein-version "2.9.0"
