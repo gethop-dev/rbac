@@ -7,7 +7,7 @@
             [magnet.sql-utils :as sql-utils])
   (:import [java.util UUID]))
 
-(def ^:const db "jdbc:postgresql://localhost:5432/rbac?user=postgres")
+(def ^:const db (System/getenv "JDBC_DATABASE_URL"))
 
 (defn enable-instrumentation []
   (-> (stest/enumerate-namespace 'magnet.rbac) stest/instrument))
