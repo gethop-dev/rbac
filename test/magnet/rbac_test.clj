@@ -116,10 +116,10 @@
     :context-type-name :asset}])
 
 (defonce ^:const rbac-tables-up-sql
-  "rbac/rbac-tables.pg.up.sql")
+  "magnet.rbac/rbac-tables.pg.up.sql")
 
 (defonce ^:const rbac-tables-down-sql
-  "rbac/rbac-tables.pg.down.sql")
+  "magnet.rbac/rbac-tables.pg.down.sql")
 
 (defonce ^:const app-tables-up-sql
   "_files/app-tables.up.sql")
