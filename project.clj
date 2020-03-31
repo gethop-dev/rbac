@@ -16,6 +16,17 @@
                                       :username :env/clojars_username
                                       :password :env/clojars_password
                                       :sign-releases false}]]
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit" "Release v%s"]
+                  ["vcs" "tag" "v" "--no-sign"]
+                  ;; We don't want to deploy manually, we let TravisCI do it
+                  ;; after it has run all the tests, etc. So simply push
+                  ;; the new version and let TravisCI do its work.
+                  ["vcs" "push"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit" "Prepare for next development release"]
+                  ["vcs" "push"]]
   :profiles
   {:dev [:project/dev :profiles/dev]
    :repl {:repl-options {:host "0.0.0.0"
