@@ -5,9 +5,8 @@
             :url "https://www.mozilla.org/en-US/MPL/2.0/"}
   :min-lein-version "2.9.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [org.clojure/core.cache "0.8.2"]
-                 [magnet/sql-utils "0.4.8"]
-                 [org.postgresql/postgresql "42.2.9"]]
+                 [org.clojure/core.cache "1.0.207"]
+                 [magnet/sql-utils "0.4.10"]]
   :deploy-repositories [["snapshots" {:url "https://clojars.org/repo"
                                       :username :env/clojars_username
                                       :password :env/clojars_password
@@ -32,6 +31,7 @@
    :repl {:repl-options {:host "0.0.0.0"
                          :port 4001}}
    :profiles/dev {}
-   :project/dev {:dependencies [[duct/logger "0.3.0"]]
-                 :plugins [[jonase/eastwood "0.3.10"]
-                           [lein-cljfmt "0.6.6"]]}})
+   :project/dev {:dependencies [[duct/logger "0.3.0"]
+                                [org.postgresql/postgresql "42.2.14"]]
+                 :plugins [[jonase/eastwood "0.3.11"]
+                           [lein-cljfmt "0.6.8"]]}})
