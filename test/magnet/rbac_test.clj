@@ -238,59 +238,57 @@
     (testing "app-user-1 has :application/manage permission on :application resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :application :id)
-            context-type :application
+            context-type-name :application
             permission-name :application/manage
-            has-permission (rbac/has-permission db logger user-id resource-id context-type permission-name)
-            ;;has-permission-cached (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)
-            ]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission true))))
 
     (testing "app-user-1 has :organization/manage permission on :organization-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :organization-1 :id)
-            context-type :organization
+            context-type-name :organization
             permission-name :organization/manage
-            has-permission (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission false))))
 
     (testing "app-user-1 has :application/manage permission on :organization-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :organization-1 :id)
-            context-type :organization
+            context-type-name :organization
             permission-name :application/manage
-            has-permission (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission true))))
 
     (testing "app-user-1 has :plant/manage permission on :plant-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :plant-1 :id)
-            context-type :plant
+            context-type-name :plant
             permission-name :plant/manage
-            has-permission (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission true))))
 
     (testing "app-user-1 :application/manage permission on :plant-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :plant-1 :id)
-            context-type :plant
+            context-type-name :plant
             permission-name :application/manage
-            has-permission (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission true))))
 
     (testing "app-user-1 has :asset/manage permission on :plant-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :plant-1 :id)
-            context-type :plant
+            context-type-name :plant
             permission-name :asset/manage
-            has-permission (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission true))))
 
     (testing "app-user-1 doesn't have :asset/manage permission on :asset-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
             resource-id (-> app-resources :asset-1 :id)
-            context-type :asset
+            context-type-name :asset
             permission-name :asset/manage
-            has-permission (rbac-caching/has-permission db logger perm-cache user-id resource-id context-type permission-name)]
+            has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission false))))))
 
 (comment
@@ -299,46 +297,46 @@
   ;; -----------------------------------------------------
   (def logs (atom []))
   (def logger (->AtomLogger logs))
-  (rbac/create-roles! db nil roles)
+  (rbac/create-roles! db logger roles)
   (rbac/create-role! db logger (first roles))
   (rbac/get-roles db logger)
   (rbac/get-role-by-id db logger
-                       (-> (rbac/get-role-by-name db logger "application/manager")
+                       (-> (rbac/get-role-by-name db logger :application/manager)
                            :role
                            :id))
-  (rbac/get-role-by-name db logger "application/manager")
+  (rbac/get-role-by-name db logger :application/manager)
   (rbac/update-role! db logger
-                     (-> (rbac/get-role-by-name db logger "application/manager")
+                     (-> (rbac/get-role-by-name db logger :application/manager)
                          :role
-                         (assoc :name "application/manager")))
+                         (assoc :name :application/manager)))
   (rbac/update-roles! db logger
-                      [(-> (rbac/get-role-by-name db logger "application/manager")
+                      [(-> (rbac/get-role-by-name db logger :application/manager)
                            :role
-                           (assoc :name "application/manager"))
-                       (-> (rbac/get-role-by-name db logger "application/manager")
+                           (assoc :name :application/manager))
+                       (-> (rbac/get-role-by-name db logger :application/manager)
                            :role
-                           (assoc :name "application/manager"))])
+                           (assoc :name :application/manager))])
   (rbac/delete-role! db logger
-                     (-> (rbac/get-role-by-name db logger "application/manager")
+                     (-> (rbac/get-role-by-name db logger :application/manager)
                          :role))
   (rbac/delete-role-by-id! db logger
-                           (-> (rbac/get-role-by-name db logger "organization/manager")
+                           (-> (rbac/get-role-by-name db logger :organization/manager)
                                :role
                                :id))
-  (rbac/delete-role-by-name! db logger "asset/manager")
+  (rbac/delete-role-by-name! db logger :asset/manager)
   (rbac/delete-roles! db logger
-                      [(-> (rbac/get-role-by-name db logger "plant/manager")
+                      [(-> (rbac/get-role-by-name db logger :plant/manager)
                            :role)
-                       (-> (rbac/get-role-by-name db logger "application/manager")
+                       (-> (rbac/get-role-by-name db logger :application/manager)
                            :role)])
-  (rbac/delete-roles-by-id! db logger
-                            [(-> (rbac/get-role-by-name db logger "plant/manager")
-                                 :role
-                                 :id)
-                             (-> (rbac/get-role-by-name db logger "application/manager")
-                                 :role
-                                 :id)])
-  (rbac/delete-roles-by-name! db logger ["organization/manager" "asset/manager"])
+  (rbac/delete-roles-by-ids! db logger
+                             [(-> (rbac/get-role-by-name db logger :plant/manager)
+                                  :role
+                                  :id)
+                              (-> (rbac/get-role-by-name db logger :application/manager)
+                                  :role
+                                  :id)])
+  (rbac/delete-roles-by-names! db logger [:organization/manager :asset/manager])
 
   ;; -----------------------------------------------------
   (rbac/create-context-types! db logger (vals context-types))
@@ -347,31 +345,32 @@
   (rbac/get-context-type db logger :application)
   (rbac/get-context-type db logger :asset)
   (rbac/update-context-type! db logger (-> (rbac/get-context-type db logger :application)
-                                           :type
+                                           :context-type
                                            (assoc :description "Some updated description")))
   (rbac/update-context-types! db logger
                               [(-> (rbac/get-context-type db logger :application)
-                                   :type
+                                   :context-type
                                    (assoc :description "Some updated description for application"))
                                (-> (rbac/get-context-type db logger :organization)
-                                   :type
+                                   :context-type
                                    (assoc :description "Some updated description for organization"))])
   (rbac/delete-context-type! db logger
                              (-> (rbac/get-context-type db logger :organization)
-                                 :type))
+                                 :context-type))
   (rbac/delete-context-types! db logger
                               [(-> (rbac/get-context-type db logger :application)
-                                   :type)
+                                   :context-type)
                                (-> (rbac/get-context-type db logger :organization)
-                                   :type)])
+                                   :context-type)])
   (rbac/delete-context-types! db logger
                               [(-> (rbac/get-context-type db logger :plant)
-                                   :type)
+                                   :context-type)
                                (-> (rbac/get-context-type db logger :asset)
-                                   :type)])
+                                   :context-type)])
 
   ;; -----------------------------------------------------
-  (let [application-ctx (:context (rbac/create-context! db logger application-context nil))
+  (let [_ (rbac/create-context-types! db logger (vals context-types))
+        application-ctx (:context (rbac/create-context! db logger application-context nil))
         organization-1-ctx (:context (rbac/create-context! db logger organization-1-context application-ctx))
         organization-2-ctx (:context (rbac/create-context! db logger organization-2-context application-ctx))
         plant-1-ctx (:context (rbac/create-context! db logger plant-1-context organization-1-ctx))
@@ -390,24 +389,26 @@
   (rbac/get-context db logger :asset (get-in app-resources [:asset-1 :id]))
   (rbac/update-context! db logger (-> (rbac/get-context db logger :application (get-in app-resources [:application :id]))
                                       :context
-                                      (assoc :context-type :asset)))
+                                      (assoc :context-type-name :asset)))
   (rbac/update-contexts! db logger
                          [(-> (rbac/get-context db logger :asset (get-in app-resources [:application :id]))
                               :context
-                              (assoc :context-type :application))
+                              (assoc :context-type-name :application))
                           (-> (rbac/get-context db logger :asset (get-in app-resources [:asset-1 :id]))
                               :context
-                              (assoc :context-type :application))])
+                              (assoc :context-type-name :application))])
   (rbac/update-context! db logger (-> (rbac/get-context db logger :application (get-in app-resources [:asset-1 :id]))
                                       :context
-                                      (assoc :context-type :asset)))
+                                      (assoc :context-type-name :asset)))
   (rbac/delete-context! db logger
                         (-> (rbac/get-context db logger :application (get-in app-resources [:application :id]))
                             :context))
   (rbac/delete-contexts! db logger
-                         [(-> (rbac/get-context db logger :application (get-in app-resources [:application :id]))
+                         [(-> (rbac/get-context db logger :asset (get-in app-resources [:asset-1 :id]))
                               :context)
-                          (-> (rbac/get-context db logger :asset (get-in app-resources [:asset-1 :id]))
+                          (-> (rbac/get-context db logger :plant (get-in app-resources [:plant-1 :id]))
+                              :context)
+                          (-> (rbac/get-context db logger :organization (get-in app-resources [:organization-1 :id]))
                               :context)])
 
   ;; -----------------------------------------------------
@@ -418,7 +419,10 @@
                              (-> (rbac/get-permission-by-name db logger :application/manage)
                                  :permission
                                  :id))
-  (rbac/get-permission-by-name db logger :application/manage)
+  (rbac/get-permission-by-name db logger
+                               (-> (rbac/get-permission-by-name db logger :application/manage)
+                                   :permission
+                                   :name))
   (rbac/update-permission! db logger
                            (-> (rbac/get-permission-by-name db logger :application/manage)
                                :permission
@@ -433,11 +437,33 @@
   (rbac/delete-permission! db logger
                            (-> (rbac/get-permission-by-name db logger :application/manage)
                                :permission))
+  (rbac/delete-permission-by-id! db logger
+                                 (-> (rbac/get-permission-by-name db logger :application/manage)
+                                     :permission
+                                     :id))
+  (rbac/delete-permission-by-name! db logger
+                                   (-> (rbac/get-permission-by-name db logger :application/manage)
+                                       :permission
+                                       :name))
   (rbac/delete-permissions! db logger
                             [(-> (rbac/get-permission-by-name db logger :application/manage)
                                  :permission)
                              (-> (rbac/get-permission-by-name db logger :organization/manage)
                                  :permission)])
+  (rbac/delete-permissions-by-ids! db logger
+                                   [(-> (rbac/get-permission-by-name db logger :application/manage)
+                                        :permission
+                                        :id)
+                                    (-> (rbac/get-permission-by-name db logger :organization/manage)
+                                        :permission
+                                        :id)])
+  (rbac/delete-permissions-by-names! db logger
+                                     [(-> (rbac/get-permission-by-name db logger :application/manage)
+                                          :permission
+                                          :name)
+                                      (-> (rbac/get-permission-by-name db logger :organization/manage)
+                                          :permission
+                                          :name)])
 
   ;; -----------------------------------------------------
   (rbac/add-super-admin! db logger (get-in app-users [:app-user-1 :id]))
@@ -448,57 +474,56 @@
 
   ;; -----------------------------------------------------
   (rbac/grant-role-permission! db logger
-                               (:role (rbac/get-role-by-name db logger "organization/manager"))
-                               (-> (rbac/get-permission-by-name db logger :organization/manage-settings)
+                               (:role (rbac/get-role-by-name db logger :organization/manager))
+                               (-> (rbac/get-permission-by-name db logger :organization/manage)
                                    :permission))
   (rbac/remove-role-permission! db logger
-                                (:role (rbac/get-role-by-name db logger "organization/manager"))
-                                (-> (rbac/get-permission-by-name db logger :organization/manage-settings)
+                                (:role (rbac/get-role-by-name db logger :organization/manager))
+                                (-> (rbac/get-permission-by-name db logger :organization/manage)
                                     :permission))
   (rbac/deny-role-permission! db logger
-                              (:role (rbac/get-role-by-name db logger "organization/manager"))
-                              (-> (rbac/get-permission-by-name db logger :organization/manage-settings)
+                              (:role (rbac/get-role-by-name db logger :organization/manager))
+                              (-> (rbac/get-permission-by-name db logger :organization/manage)
                                   :permission))
   (rbac/remove-role-permission! db logger
-                                (:role (rbac/get-role-by-name db logger "organization/manager"))
-                                (-> (rbac/get-permission-by-name db logger :organization/manage-settings)
+                                (:role (rbac/get-role-by-name db logger :organization/manager))
+                                (-> (rbac/get-permission-by-name db logger :organization/manage)
                                     :permission))
 
   ;; -----------------------------------------------------
+  (rbac/assign-role! db logger
+                     {:role (:role (rbac/get-role-by-name db logger :application/manager))
+                      :context (:context (rbac/get-context db logger
+                                                           :application
+                                                           (get-in app-resources [:application :id])))
+                      :user (:app-user-1 app-users)})
   (rbac/assign-roles! db logger
-                      [{:role (:role (rbac/get-role-by-name db logger "application/manager"))
+                      [{:role (:role (rbac/get-role-by-name db logger :application/manager))
                         :context
                         (:context (rbac/get-context db logger
                                                     :application
                                                     (get-in app-resources [:application :id])))
                         :user (:app-user-1 app-users)}
-                       {:role (:role (rbac/get-role-by-name db logger "organization/manager"))
+                       {:role (:role (rbac/get-role-by-name db logger :organization/manager))
                         :context (:context (rbac/get-context db logger
                                                              :organization
                                                              (get-in app-resources [:organization-2 :id])))
                         :user (:app-user-2 app-users)}])
-  (rbac/assign-role! db logger
-                     {:role (:role (rbac/get-role-by-name db logger "application/manager"))
-                      :context (:context (rbac/get-context db logger
-                                                           :application
-                                                           (get-in app-resources [:application :id])))
-                      :user (:app-user-1 app-users)})
   (rbac/unassign-role! db logger
-                       {:role (:role (rbac/get-role-by-name db logger "application/manager"))
+                       {:role (:role (rbac/get-role-by-name db logger :application/manager))
                         :context (:context (rbac/get-context db logger
                                                              :application
                                                              (get-in app-resources [:application :id])))
                         :user (:app-user-1 app-users)})
   (rbac/unassign-roles! db logger
-                        [{:role (:role (rbac/get-role-by-name db logger "application/manager"))
+                        [{:role (:role (rbac/get-role-by-name db logger :application/manager))
                           :context
                           (:context (rbac/get-context db logger
                                                       :application
                                                       (get-in app-resources [:application :id])))
                           :user (:app-user-1 app-users)}
-                         {:role (:role (rbac/get-role-by-name db logger "organization/manager"))
+                         {:role (:role (rbac/get-role-by-name db logger :organization/manager))
                           :context (:context (rbac/get-context db logger
                                                                :organization
                                                                (get-in app-resources [:organization-2 :id])))
                           :user (:app-user-2 app-users)}]))
-
