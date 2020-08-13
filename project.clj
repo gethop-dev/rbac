@@ -5,7 +5,6 @@
             :url "https://www.mozilla.org/en-US/MPL/2.0/"}
   :min-lein-version "2.9.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [org.clojure/core.cache "1.0.207"]
                  [magnet/sql-utils "0.4.11"]
                  [honeysql "1.0.444"]]
   :deploy-repositories [["snapshots" {:url "https://clojars.org/repo"

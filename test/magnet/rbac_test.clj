@@ -1,6 +1,5 @@
 (ns magnet.rbac-test
-  (:require [clojure.core.cache.wrapped :as cw]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [clojure.java.jdbc :as jdbc]
             [clojure.spec.test.alpha :as stest]
             [clojure.test :refer :all]
@@ -143,9 +142,6 @@
 
 (defn- destroy-rbac-tables []
   (sql-utils/sql-execute! db nil (slurp (io/resource rbac-tables-down-sql))))
-
-(defonce ^:const perm-cache-size 1024)
-(defonce perm-cache (cw/lru-cache-factory {} :threshold perm-cache-size))
 
 (use-fixtures
   :once (fn reset-db [f]
