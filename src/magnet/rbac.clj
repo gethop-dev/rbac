@@ -583,6 +583,14 @@
   [db-spec logger permissions]
   (doall (map #(create-permission! db-spec logger %) permissions)))
 
+(s/def ::get-permissions-args (s/cat :db-spec ::db-spec
+                                     :logger ::logger))
+(s/def ::get-permissions-ret (s/keys :req-un [::success?]
+                                     :opt-un [::permissions]))
+(s/fdef get-permissions
+  :args ::get-permissions-args
+  :ret  ::get-permissions-ret)
+
 (defn get-permissions
   [db-spec logger]
   (let [result (get-* db-spec logger :rbac_permission :permissions)]
@@ -597,13 +605,40 @@
     {:success? success?
      :permission (db-perm->perm (first values))}))
 
+(s/def ::get-permission-by-id-args (s/cat :db-spec ::db-spec
+                                          :logger ::logger
+                                          :id ::id))
+(s/def ::get-permission-by-id-ret (s/keys :req-un [::success?]
+                                          :opt-un [::permission]))
+(s/fdef get-permission-by-id
+  :args ::get-permission-by-id-args
+  :ret  ::get-permission-by-id-ret)
+
 (defn get-permission-by-id
   [db-spec logger id]
   (get-permission-by-* db-spec logger :id id))
 
+(s/def ::get-permission-by-name-args (s/cat :db-spec ::db-spec
+                                            :logger ::logger
+                                            :name ::name))
+(s/def ::get-permission-by-name-ret (s/keys :req-un [::success?]
+                                            :opt-un [::permission]))
+(s/fdef get-permission-by-name
+  :args ::get-permission-by-name-args
+  :ret  ::get-permission-by-name-ret)
+
 (defn get-permission-by-name
   [db-spec logger name]
   (get-permission-by-* db-spec logger :name (kw->str name)))
+
+(s/def ::update-permission!-args (s/cat :db-spec ::db-spec
+                                        :logger ::logger
+                                        :permission ::permission))
+(s/def ::update-permission!-ret (s/keys :req-un [::success?]
+                                        :opt-un [::permission]))
+(s/fdef update-permission!
+  :args ::update-permission!-args
+  :ret  ::update-permission!-ret)
 
 (defn update-permission!
   [db-spec logger permission]
@@ -615,35 +650,100 @@
       {:success? true :permission permission}
       {:success? false})))
 
+(s/def ::update-permissions!-args (s/cat :db-spec ::db-spec
+                                         :logger ::logger
+                                         :permissions ::permissions))
+(s/def ::update-permissions!-ret (s/keys :req-un [::success?]
+                                         :opt-un [::permissions]))
+(s/fdef update-permissions!
+  :args ::update-permissions!-args
+  :ret  ::update-permissions!-ret)
+
 (defn update-permissions!
   [db-spec logger permissions]
   (doall (map #(update-permission! db-spec logger %) permissions)))
+
+(s/def ::delete-permission!-args (s/cat :db-spec ::db-spec
+                                        :logger ::logger
+                                        :permission ::permission))
+(s/def ::delete-permission!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-permission!
+  :args ::delete-permission!-args
+  :ret  ::delete-permission!-ret)
 
 (defn delete-permission!
   [db-spec logger permission]
   (delete-where-x! db-spec logger :rbac-permission [:= :id (:id permission)]))
 
+(s/def ::delete-permission-by-id!-args (s/cat :db-spec ::db-spec
+                                              :logger ::logger
+                                              :id ::id))
+(s/def ::delete-permission-by-id!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-permission-by-id!
+  :args ::delete-permission-by-id!-args
+  :ret  ::delete-permission-by-id!-ret)
+
 (defn delete-permission-by-id!
   [db-spec logger id]
   (delete-where-x! db-spec logger :rbac-permission [:= :id id]))
+
+(s/def ::delete-permission-by-name!-args (s/cat :db-spec ::db-spec
+                                                :logger ::logger
+                                                :name ::name))
+(s/def ::delete-permission-by-name!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-permission-by-name!
+  :args ::delete-permission-by-name!-args
+  :ret  ::delete-permission-by-name!-ret)
 
 (defn delete-permission-by-name!
   [db-spec logger name]
   (delete-where-x! db-spec logger :rbac-permission [:= :name (kw->str name)]))
 
+(s/def ::delete-permissions!-args (s/cat :db-spec ::db-spec
+                                         :logger ::logger
+                                         :permissions ::permissions))
+(s/def ::delete-permissions!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-permissions!
+  :args ::delete-permissions!-args
+  :ret  ::delete-permissions!-ret)
+
 (defn delete-permissions!
   [db-spec logger permissions]
   (doall (map #(delete-permission! db-spec logger %) permissions)))
 
+(s/def ::delete-permissions-by-ids!-args (s/cat :db-spec ::db-spec
+                                                :logger ::logger
+                                                :ids ::ids))
+(s/def ::delete-permissions-by-ids!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-permission-by-idss!
+  :args ::delete-permissions-by-ids!-args
+  :ret  ::delete-permissions-by-ids!-ret)
+
 (defn delete-permissions-by-ids!
   [db-spec logger ids]
   (doall (map #(delete-permission-by-id! db-spec logger %) ids)))
+
+(s/def ::delete-permission-by-names!-args (s/cat :db-spec ::db-spec
+                                                 :logger ::logger
+                                                 :names ::names))
+(s/def ::delete-permission-by-names!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-permission-by-names!
+  :args ::delete-permission-by-names!-args
+  :ret  ::delete-permission-by-names!-ret)
 
 (defn delete-permissions-by-names!
   [db-spec logger names]
   (doall (map #(delete-permission-by-name! db-spec logger %) names)))
 
 ;; -----------------------------------------------------------
+(s/def ::add-super-admin-args (s/cat :db-spec ::db-spec
+                                     :logger ::logger
+                                     :user-id ::id))
+(s/def ::add-super-admin-ret (s/keys :req-un [::success?]))
+(s/fdef add-super-admin
+  :args ::add-super-admin-args
+  :ret  ::add-super-admin-ret)
+
 (defn add-super-admin!
   [db-spec logger user-id]
   (let [insert-keys [:user-id]
@@ -656,6 +756,16 @@
       {:success? true :super-admin user-id}
       {:success? false})))
 
+(s/def ::super-admin?-args (s/cat :db-spec ::db-spec
+                                  :logger ::logger
+                                  :user-id ::id))
+(s/def ::super-admin? boolean)
+(s/def ::super-admin?-ret (s/keys :req-un [::success?]
+                                  :opt-un [::super-admin?]))
+(s/fdef super-admin?
+  :args ::super-admin?-args
+  :ret  ::super-admin?-ret)
+
 (defn super-admin?
   [db-spec logger user-id]
   (let [query (hsql/format {:select [:user-id]
@@ -666,6 +776,14 @@
       {:success? true :super-admin? true}
       (if success?
         {:success? true :super-admin? false}))))
+
+(s/def ::remove-super-admin-args (s/cat :db-spec ::db-spec
+                                        :logger ::logger
+                                        :user-id ::id))
+(s/def ::remove-super-admin-ret (s/keys :req-un [::success?]))
+(s/fdef remove-super-admin
+  :args ::remove-super-admin-args
+  :ret  ::remove-super-admin-ret)
 
 (defn remove-super-admin!
   [db-spec logger user-id]
@@ -691,21 +809,66 @@
       {:success? true}
       {:success? false})))
 
+(s/def ::grant-role-permission!-args (s/cat :db-spec ::db-spec
+                                            :logger ::logger
+                                            :role ::role
+                                            :permission ::permission))
+(s/def ::grant-role-permission!-ret (s/keys :req-un [::success?]))
+(s/fdef grant-role-permission!
+  :args ::grant-role-permission!-args
+  :ret  ::grant-role-permission!-ret)
+
 (defn grant-role-permission!
   [db-spec logger role permission]
   (set-perm-with-value db-spec logger role permission :permission-granted))
+
+(s/def ::grant-role-permissions!-args (s/cat :db-spec ::db-spec
+                                             :logger ::logger
+                                             :role ::role
+                                             :permissions ::permissions))
+(s/def ::grant-role-permissions!-ret (s/keys :req-un [::success?]))
+(s/fdef grant-role-permissions!
+  :args ::grant-role-permissions!-args
+  :ret  ::grant-role-permissions!-ret)
 
 (defn grant-role-permissions!
   [db-spec logger role permissions]
   (doall (map #(set-perm-with-value db-spec logger role % :permission-granted) permissions)))
 
+(s/def ::deny-role-permission!-args (s/cat :db-spec ::db-spec
+                                           :logger ::logger
+                                           :role ::role
+                                           :permission ::permission))
+(s/def ::deny-role-permission!-ret (s/keys :req-un [::success?]))
+(s/fdef deny-role-permission!
+  :args ::deny-role-permission!-args
+  :ret  ::deny-role-permission!-ret)
+
 (defn deny-role-permission!
   [db-spec logger role permission]
   (set-perm-with-value db-spec logger role permission :permission-denied))
 
+(s/def ::deny-role-permissions!-args (s/cat :db-spec ::db-spec
+                                            :logger ::logger
+                                            :role ::role
+                                            :permissions ::permissions))
+(s/def ::deny-role-permissions!-ret (s/keys :req-un [::success?]))
+(s/fdef deny-role-permissions!
+  :args ::deny-role-permissions!-args
+  :ret  ::deny-role-permissions!-ret)
+
 (defn deny-role-permissions!
   [db-spec logger role permissions]
   (doall (map #(set-perm-with-value db-spec logger role % :permission-denied) permissions)))
+
+(s/def ::remove-role-permission!-args (s/cat :db-spec ::db-spec
+                                             :logger ::logger
+                                             :role ::role
+                                             :permission ::permission))
+(s/def ::remove-role-permission!-ret (s/keys :req-un [::success?]))
+(s/fdef remove-role-permission!
+  :args ::remove-role-permission!-args
+  :ret  ::remove-role-permission!-ret)
 
 (defn remove-role-permission!
   [db-spec logger role permission]
@@ -713,11 +876,31 @@
                                                          [:= :role-id (:id role)]
                                                          [:= :permission-id (:id permission)]]))
 
+(s/def ::remove-role-permissions!-args (s/cat :db-spec ::db-spec
+                                              :logger ::logger
+                                              :role ::role
+                                              :permissions ::permissions))
+(s/def ::remove-role-permissions!-ret (s/keys :req-un [::success?]))
+(s/fdef remove-role-permissions!
+  :args ::remove-role-permissions!-args
+  :ret  ::remove-role-permissions!-ret)
+
 (defn remove-role-permissions!
   [db-spec logger role permissions]
   (doall (map #(remove-role-permission! db-spec logger role %) permissions)))
 
 ;; -----------------------------------------------------------
+(s/def ::role-assignment (s/keys :req-un [::role
+                                          ::context
+                                          ::user]))
+(s/def ::assign-role!-args (s/cat :db-spec ::db-spec
+                                  :logger ::logger
+                                  :role-assignment ::role-assignment))
+(s/def ::assign-role!-ret (s/keys :req-un [::success?]))
+(s/fdef assign-role!
+  :args ::assign-role!-args
+  :ret  ::assign-role!-ret)
+
 (defn assign-role!
   [db-spec logger {:keys [role context user] :as role-assignment}]
   (let [insert-keys [:role-id :context-id :user-id]
@@ -730,20 +913,58 @@
       {:success? true}
       {:success? false})))
 
+(s/def ::role-assignments (s/coll-of ::role-assignment))
+(s/def ::assign-roles!-args (s/cat :db-spec ::db-spec
+                                   :logger ::logger
+                                   :role-assignments ::role-assignments))
+(s/def ::assign-roles!-ret (s/coll-of (s/keys :req-un [::success?])))
+(s/fdef assign-roles!
+  :args ::assign-roles!-args
+  :ret  ::assign-roles!-ret)
+
 (defn assign-roles!
   [db-spec logger role-assignments]
   (doall (map #(assign-role! db-spec logger %) role-assignments)))
+
+(s/def ::unassign-role!-args (s/cat :db-spec ::db-spec
+                                    :logger ::logger
+                                    :role-assignment ::role-assignment))
+(s/def ::unassign-role!-ret (s/keys :req-un [::success?]))
+(s/fdef unassign-role!
+  :args ::unassign-role!-args
+  :ret  ::unassign-role!-ret)
+
 (defn unassign-role!
   [db-spec logger {:keys [role context user] :as role-assignment}]
   (delete-where-x! db-spec logger :rbac-role-assignment [:and
                                                          [:= :role-id (:id role)]
                                                          [:= :context-id (:id context)]
                                                          [:= :user-id (:id user)]]))
+
+(s/def ::unassign-roles!-args (s/cat :db-spec ::db-spec
+                                     :logger ::logger
+                                     :role-assignments ::role-assignments))
+(s/def ::unassign-roles!-ret (s/keys :req-un [::success?]))
+(s/fdef unassign-roles!
+  :args ::unassign-roles!-args
+  :ret  ::unassign-roles!-ret)
+
 (defn unassign-roles!
   [db-spec logger unassignments]
   (doall (map #(unassign-role! db-spec logger %) unassignments)))
 
 ;; -----------------------------------------------------------
+(s/def ::has-permission-args (s/cat :db-spec ::db-spec
+                                    :logger ::logger
+                                    :user-id ::id
+                                    :resource-id ::id
+                                    :context-type-name ::context-type-name
+                                    :permission-name ::permission-name))
+(s/def ::has-permission-ret (s/keys :req-un [::success?]))
+(s/fdef has-permission
+  :args ::has-permission-args
+  :ret  ::has-permission-ret)
+
 (defn has-permission
   [db-spec logger user-id resource-id context-type permission-name]
   (let [;; WITH RECURSE construct Inspired by familiy tree example at
