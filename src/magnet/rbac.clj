@@ -55,7 +55,9 @@
 (s/def ::db-spec ::sql-utils/db-spec)
 (s/def ::logger ::sql-utils/logger)
 (s/def ::id uuid?)
-(s/def ::name string?)
+(s/def ::ids (s/coll-of ::id))
+(s/def ::name keyword?)
+(s/def ::names (s/coll-of ::names))
 (s/def ::description string?)
 (s/def ::role (s/keys :req-un [::name]
                       :opt-un [::id ::description]))
@@ -261,8 +263,7 @@
   (-> db-context-type
       (update :name str->kw)))
 
-(s/def ::context-type-name keyword?)
-(s/def ::name ::context-type-name)
+(s/def ::context-type-name ::name)
 (s/def ::description string?)
 (s/def ::context-type (s/keys :req-un [::name]
                               :opt-un [::description]))
@@ -539,6 +540,7 @@
       (update :name #(str->kw %))
       (update :context-type-name #(str->kw %))))
 
+(s/def ::permission-name ::name)
 (s/def ::permission (s/keys :req-un [::name
                                      ::context-type-name]
                             :opt-un [::id
