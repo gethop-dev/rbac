@@ -418,7 +418,7 @@
   :ret  ::create-context!-ret)
 
 (defn create-context!
-  ;; To be able to create the top-level context, pass `nil` for PARENT-CONTEXT
+  "To be able to create the top-level context, pass `nil` for PARENT-CONTEXT"
   [db-spec logger {:keys [context-type-name resource-id] :as context} parent-context]
   (let [context (-> context
                     (assoc :id (UUID/randomUUID))
