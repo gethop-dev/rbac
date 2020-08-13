@@ -226,27 +226,27 @@
   [db-spec logger roles]
   (doall (map #(delete-role-by-name! db-spec logger (:name %)) roles)))
 
-(s/def ::delete-roles-by-id!-args (s/cat :db-spec ::db-spec
-                                         :logger ::logger
-                                         :role-ids (s/coll-of ::id)))
-(s/def ::delete-roles-by-id!-ret (s/keys :req-un [::success?]))
-(s/fdef delete-roles-by-id!
-  :args ::delete-roles-by-id!-args
-  :ret  ::delete-roles-by-id!-ret)
+(s/def ::delete-roles-by-ids!-args (s/cat :db-spec ::db-spec
+                                          :logger ::logger
+                                          :ids :ids))
+(s/def ::delete-roles-by-ids!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-roles-by-ids!
+  :args ::delete-roles-by-ids!-args
+  :ret  ::delete-roles-by-ids!-ret)
 
-(defn delete-roles-by-id!
-  [db-spec logger role-ids]
-  (doall (map #(delete-role-by-id! db-spec logger %) role-ids)))
+(defn delete-roles-by-ids!
+  [db-spec logger ids]
+  (doall (map #(delete-role-by-id! db-spec logger %) ids)))
 
-(s/def ::delete-roles-by-name!-args (s/cat :db-spec ::db-spec
-                                           :logger ::logger
-                                           :role-ids (s/coll-of ::id)))
-(s/def ::delete-roles-by-name!-ret (s/keys :req-un [::success?]))
-(s/fdef delete-roles-by-name!
-  :args ::delete-roles-by-name!-args
-  :ret  ::delete-roles-by-name!-ret)
+(s/def ::delete-roles-by-names!-args (s/cat :db-spec ::db-spec
+                                            :logger ::logger
+                                            :names ::names))
+(s/def ::delete-roles-by-names!-ret (s/keys :req-un [::success?]))
+(s/fdef delete-roles-by-names!
+  :args ::delete-roles-by-names!-args
+  :ret  ::delete-roles-by-names!-ret)
 
-(defn delete-roles-by-name!
+(defn delete-roles-by-names!
   [db-spec logger names]
   (doall (map #(delete-role-by-name! db-spec logger %) names)))
 
@@ -568,14 +568,14 @@
       {:success? false})))
 
 (s/def ::permissions (s/coll-of ::permission))
-(s/def ::create-permission!-args (s/cat :db-spec ::db-spec
-                                        :logger ::logger
-                                        :permissions ::permission))
-(s/def ::create-permission!-ret (s/keys :req-un [::success?]
-                                        :opt-un [::permission]))
-(s/fdef create-permission!
-  :args ::create-permission!-args
-  :ret  ::create-permission!-ret)
+(s/def ::create-permissions!-args (s/cat :db-spec ::db-spec
+                                         :logger ::logger
+                                         :permissions ::permissions))
+(s/def ::create-permissions!-ret (s/keys :req-un [::success?]
+                                         :opt-un [::permissions]))
+(s/fdef create-permissions!
+  :args ::create-permissions!-args
+  :ret  ::create-permissions!-ret)
 
 (defn create-permissions!
   [db-spec logger permissions]
@@ -633,9 +633,9 @@
   [db-spec logger permissions]
   (doall (map #(delete-permission! db-spec logger %) permissions)))
 
-(defn delete-permissions-by-id!
-  [db-spec logger permission-ids]
-  (doall (map #(delete-permission-by-id! db-spec logger %) permission-ids)))
+(defn delete-permissions-by-ids!
+  [db-spec logger ids]
+  (doall (map #(delete-permission-by-id! db-spec logger %) ids)))
 
 (defn delete-permissions-by-names!
   [db-spec logger names]
