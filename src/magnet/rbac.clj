@@ -1,7 +1,8 @@
 (ns magnet.rbac
-  (:require [magnet.sql-utils :as sql-utils]
-            [clojure.spec.alpha :as s]
-            [duct.logger :as logger])
+  (:require [clojure.spec.alpha :as s]
+            [duct.logger :as logger]
+            [honeysql.core :as hsql]
+            [magnet.sql-utils :as sql-utils])
   (:import [java.util UUID]))
 
 (defn- kw->str
@@ -14,30 +15,29 @@
 
 (defn- get-*
   [db-spec logger table vals-kw]
-  (let [query [(format "SELECT *
-                        FROM %s" table)]
+  (let [query (hsql/format {:select [:*]
+                            :from [table]})
         {:keys [success? return-values]} (sql-utils/sql-query db-spec logger query)]
     (if success?
       {:success? true vals-kw return-values}
       {:success? false})))
 
-(defn- get-x-by-y
-  [db-spec logger table condition & params]
-  (let [query (cons (format "SELECT *
-                        FROM %s
-                        WHERE %s" table condition)
-                    params)
+(defn- get-*-where-y
+  [db-spec logger table conditions]
+  (let [query (hsql/format {:select [:*]
+                            :from [table]
+                            :where conditions})
         {:keys [success? return-values]} (sql-utils/sql-query db-spec logger query)]
     (if (and success? (> (count return-values) 0))
       {:success? true :values return-values}
       {:success? false})))
 
-(defn- delete-x-where-y!
-  [db-spec logger table where-clause]
-  (let [{:keys [success? deleted-values]} (sql-utils/sql-delete! db-spec logger
-                                                                 table
-                                                                 where-clause)]
-    (if (and success? (> deleted-values 0))
+(defn- delete-where-x!
+  [db-spec logger table conditions]
+  (let [query (hsql/format {:delete-from table
+                            :where conditions})
+        {:keys [success? processed-values]} (sql-utils/sql-execute! db-spec logger query)]
+    (if (and success? (> processed-values 0))
       {:success? true}
       {:success? false})))
 
@@ -110,14 +110,13 @@
 
 (defn get-roles
   [db-spec logger]
-  (let [return (get-* db-spec logger "rbac_role" :roles)]
+  (let [return (get-* db-spec logger :rbac_role :roles)]
     (update return :roles #(map db-role->role %))))
 
 (defn- get-role-by-*
   [db-spec logger column value]
-  (let [{:keys [success? values]} (get-x-by-y db-spec logger "rbac_role"
-                                              (format "%s = ?" column)
-                                              value)]
+  (let [{:keys [success? values]} (get-*-where-y db-spec logger :rbac_role
+                                                 [:= column value])]
     {:success? success?
      :role (first (map db-role->role values))}))
 
@@ -132,7 +131,7 @@
 
 (defn get-role-by-id
   [db-spec logger role-id]
-  (get-role-by-* db-spec logger "id" role-id))
+  (get-role-by-* db-spec logger :id role-id))
 
 (s/def ::get-role-by-name-args (s/cat :db-spec ::db-spec
                                       :logger ::logger
@@ -145,7 +144,7 @@
 
 (defn get-role-by-name
   [db-spec logger name]
-  (get-role-by-* db-spec logger "name" (kw->str name)))
+  (get-role-by-* db-spec logger :name (kw->str name)))
 
 (s/def ::update-role!-args (s/cat :db-spec ::db-spec
                                   :logger ::logger
@@ -158,8 +157,7 @@
 
 (defn update-role!
   [db-spec logger role]
-  (let [db-role ()
-        {:keys [success? processed-values]} (sql-utils/sql-update! db-spec logger
+  (let [{:keys [success? processed-values]} (sql-utils/sql-update! db-spec logger
                                                                    :rbac-role
                                                                    (role->db-role role)
                                                                    ["id = ?" (:id role)])]
@@ -190,7 +188,7 @@
 
 (defn delete-role!
   [db-spec logger role]
-  (delete-x-where-y! db-spec logger :rbac-role ["id = ?" (:id role)]))
+  (delete-where-x! db-spec logger :rbac-role [:= :id (:id role)]))
 
 (s/def ::delete-role-by-id!-args (s/cat :db-spec ::db-spec
                                         :logger ::logger
@@ -202,7 +200,7 @@
 
 (defn delete-role-by-id!
   [db-spec logger role-id]
-  (delete-x-where-y! db-spec logger :rbac-role ["id = ?" role-id]))
+  (delete-where-x! db-spec logger :rbac-role [:= :id role-id]))
 
 (s/def ::delete-role-by-name!-args (s/cat :db-spec ::db-spec
                                           :logger ::logger
@@ -214,7 +212,7 @@
 
 (defn delete-role-by-name!
   [db-spec logger name]
-  (delete-x-where-y! db-spec logger :rbac-role ["name = ?" name]))
+  (delete-where-x! db-spec logger :rbac-role [:= :name (kw->str name)]))
 
 (s/def ::delete-roles!-args (s/cat :db-spec ::db-spec
                                    :logger ::logger
@@ -226,7 +224,7 @@
 
 (defn delete-roles!
   [db-spec logger roles]
-  (doall (map #(delete-role-by-id! db-spec logger (:id %)) roles)))
+  (doall (map #(delete-role-by-name! db-spec logger (:name %)) roles)))
 
 (s/def ::delete-roles-by-id!-args (s/cat :db-spec ::db-spec
                                          :logger ::logger
@@ -314,7 +312,7 @@
 
 (defn get-context-types
   [db-spec logger]
-  (let [return (get-* db-spec logger "rbac_context_type" :context-types)]
+  (let [return (get-* db-spec logger :rbac_context_type :context-types)]
     (update return :context-types #(map db-context-type->context-type %))))
 
 (s/def ::get-context-type-args (s/cat :db-spec ::db-spec
@@ -328,11 +326,12 @@
 (defn get-context-type
   [db-spec logger context-type-name]
   (let [{:keys [success? values]}
-        (get-x-by-y db-spec logger "rbac_context_type"
-                    "name = ?"
-                    (kw->str context-type-name))]
-    {:success? success?
-     :context-type (first values)}))
+        (get-*-where-y db-spec logger :rbac_context_type
+                       [:= :name (kw->str context-type-name)])]
+    (if-not success?
+      {:success? false}
+      {:success? success?
+       :context-type (first values)})))
 
 (s/def ::update-context-type!-args (s/cat :db-spec ::db-spec
                                           :logger ::logger
@@ -377,7 +376,7 @@
 
 (defn delete-context-type!
   [db-spec logger context-type]
-  (delete-x-where-y! db-spec logger :rbac-context-type ["name = ?" (:name context-type)]))
+  (delete-where-x! db-spec logger :rbac-context-type [:= :name (:name context-type)]))
 
 (s/def ::delete-context-types!-args (s/cat :db-spec ::db-spec
                                            :logger ::logger
@@ -446,7 +445,7 @@
 
 (defn get-contexts
   [db-spec logger]
-  (let [return (get-* db-spec logger "rbac_context" :contexts)]
+  (let [return (get-* db-spec logger :rbac_context :contexts)]
     (update return :contexts #(map db-context->context %))))
 
 (s/def ::get-context-args (s/cat :db-spec ::db-spec
@@ -462,12 +461,12 @@
 (defn get-context
   [db-spec logger context-type-name resource-id]
   (let [{:keys [success? values]}
-        (get-x-by-y db-spec logger "rbac_context"
-                    "context_type_name = ? AND resource_id = ?"
-                    (kw->str context-type-name)
-                    resource-id)]
+        (get-*-where-y db-spec logger :rbac_context
+                       [:and
+                        [:= :context-type-name (kw->str context-type-name)]
+                        [:= :resource-id resource-id]])]
     {:success? success?
-     :context (first values)}))
+     :context (db-context->context (first values))}))
 
 (s/def ::update-context!-args (s/cat :db-spec ::db-spec
                                      :logger ::logger
@@ -511,10 +510,9 @@
 
 (defn delete-context!
   [db-spec logger {:keys [context-type-name resource-id]}]
-  (delete-x-where-y! db-spec logger :rbac-context
-                     ["context_type_name = ? AND resource_id = ?"
-                      context-type-name
-                      resource-id]))
+  (delete-where-x! db-spec logger :rbac-context [:and
+                                                 [:= :context-type-name (kw->str context-type-name)]
+                                                 [:= :resource-id resource-id]]))
 
 (s/def ::delete-contexts!-args (s/cat :db-spec ::db-spec
                                       :logger ::logger
@@ -585,26 +583,25 @@
 
 (defn get-permissions
   [db-spec logger]
-  (let [result (get-* db-spec logger "rbac_permission" :permissions)]
+  (let [result (get-* db-spec logger :rbac_permission :permissions)]
     (if-not (:success? result)
       {:success? false}
       (update result :permissions #(map db-perm->perm %)))))
 
 (defn- get-permission-by-*
   [db-spec logger column value]
-  (let [{:keys [success? values]} (get-x-by-y db-spec logger "rbac_permission"
-                                              (format "%s = ?" column)
-                                              value)]
+  (let [{:keys [success? values]} (get-*-where-y db-spec logger :rbac_permission
+                                                 [:= column value])]
     {:success? success?
-     :permission (first values)}))
+     :permission (db-perm->perm (first values))}))
 
 (defn get-permission-by-id
   [db-spec logger id]
-  (get-permission-by-* db-spec logger "id" id))
+  (get-permission-by-* db-spec logger :id id))
 
 (defn get-permission-by-name
   [db-spec logger name]
-  (get-permission-by-* db-spec logger "name" (kw->str name)))
+  (get-permission-by-* db-spec logger :name (kw->str name)))
 
 (defn update-permission!
   [db-spec logger permission]
@@ -622,15 +619,15 @@
 
 (defn delete-permission!
   [db-spec logger permission]
-  (delete-x-where-y! db-spec logger :rbac-permission ["id = ?" (:id permission)]))
+  (delete-where-x! db-spec logger :rbac-permission [:= :id (:id permission)]))
 
 (defn delete-permission-by-id!
-  [db-spec logger permission-id]
-  (delete-x-where-y! db-spec logger :rbac-permission ["id = ?" permission-id]))
+  [db-spec logger id]
+  (delete-where-x! db-spec logger :rbac-permission [:= :id id]))
 
 (defn delete-permission-by-name!
   [db-spec logger name]
-  (delete-x-where-y! db-spec logger :rbac-permission ["name = ?" name]))
+  (delete-where-x! db-spec logger :rbac-permission [:= :name (kw->str name)]))
 
 (defn delete-permissions!
   [db-spec logger permissions]
@@ -659,9 +656,10 @@
 
 (defn super-admin?
   [db-spec logger user-id]
-  (let [{:keys [success? return-values]} (sql-utils/sql-query db-spec logger ["SELECT *
-                                                                          FROM rbac_super_admin
-                                                                          WHERE user_id = ?" user-id])]
+  (let [query (hsql/format {:select [:user-id]
+                            :from [:rbac-super-admin]
+                            :where [:= :user-id user-id]})
+        {:keys [success? return-values]} (sql-utils/sql-query db-spec logger query)]
     (if (and success? (> (count return-values) 0))
       {:success? true :super-admin? true}
       (if success?
@@ -669,35 +667,7 @@
 
 (defn remove-super-admin!
   [db-spec logger user-id]
-  (delete-x-where-y! db-spec logger :rbac-super-admin ["user_id = ?" user-id]))
-
-;; -----------------------------------------------------------
-(defn assign-role!
-  [db-spec logger {:keys [role context user] :as assignment}]
-  (let [insert-keys [:role-id :context-id :user-id]
-        insert-values [(:id role) (:id context) (:id user)]
-        {:keys [success? inserted-values]} (sql-utils/sql-insert! db-spec logger
-                                                                  :rbac-role-assignment
-                                                                  insert-keys
-                                                                  insert-values)]
-    (if (and success? (> inserted-values 0))
-      {:success? true}
-      {:success? false})))
-
-(defn assign-roles!
-  [db-spec logger assignments]
-  (doall (map #(assign-role! db-spec logger %) assignments)))
-
-(defn unassign-role!
-  [db-spec logger {:keys [role context user]}]
-  (delete-x-where-y! db-spec logger :rbac-role-assignment ["role_id = ? AND context_id = ? AND user_id = ?"
-                                                           (:id role)
-                                                           (:id context)
-                                                           (:id user)]))
-
-(defn unassign-roles!
-  [db-spec logger unassignments]
-  (doall (map #(unassign-role! db-spec logger %) unassignments)))
+  (delete-where-x! db-spec logger :rbac-super-admin [:= :user-id user-id]))
 
 ;; -----------------------------------------------------------
 (defn- set-perm-with-value
@@ -711,21 +681,13 @@
         where-clause ["role_id = ? AND permission_id = ?"
                       (:id role)
                       (:id permission)]
-        {:keys [success? processed-values]} (sql-utils/sql-update! db-spec logger
-                                                                   :rbac-role-permission
-                                                                   role-permission
-                                                                   where-clause)]
+        {:keys [success? processed-values]} (sql-utils/sql-update-or-insert! db-spec logger
+                                                                             :rbac-role-permission
+                                                                             role-permission
+                                                                             where-clause)]
     (if (and success? (> processed-values 0))
       {:success? true}
-      (let [ks (keys role-permission)
-            vs (vals role-permission)
-            {:keys [success? inserted-values]} (sql-utils/sql-insert! db-spec logger
-                                                                      :rbac-role-permission
-                                                                      ks
-                                                                      vs)]
-        (if (and success? (> inserted-values 0))
-          {:success? true}
-          {:success? false})))))
+      {:success? false})))
 
 (defn grant-role-permission!
   [db-spec logger role permission]
@@ -745,91 +707,98 @@
 
 (defn remove-role-permission!
   [db-spec logger role permission]
-  (delete-x-where-y! db-spec logger :rbac-role-permission ["role_id = ? AND permission_id = ?"
-                                                           (:id role)
-                                                           (:id permission)]))
+  (delete-where-x! db-spec logger :rbac-role-permission [:and
+                                                         [:= :role-id (:id role)]
+                                                         [:= :permission-id (:id permission)]]))
 
 (defn remove-role-permissions!
   [db-spec logger role permissions]
   (doall (map #(remove-role-permission! db-spec logger role %) permissions)))
 
 ;; -----------------------------------------------------------
+(defn assign-role!
+  [db-spec logger {:keys [role context user] :as role-assignment}]
+  (let [insert-keys [:role-id :context-id :user-id]
+        insert-values [(:id role) (:id context) (:id user)]
+        {:keys [success? inserted-values]} (sql-utils/sql-insert! db-spec logger
+                                                                  :rbac-role-assignment
+                                                                  insert-keys
+                                                                  insert-values)]
+    (if (and success? (> inserted-values 0))
+      {:success? true}
+      {:success? false})))
 
+(defn assign-roles!
+  [db-spec logger role-assignments]
+  (doall (map #(assign-role! db-spec logger %) role-assignments)))
+(defn unassign-role!
+  [db-spec logger {:keys [role context user] :as role-assignment}]
+  (delete-where-x! db-spec logger :rbac-role-assignment [:and
+                                                         [:= :role-id (:id role)]
+                                                         [:= :context-id (:id context)]
+                                                         [:= :user-id (:id user)]]))
+(defn unassign-roles!
+  [db-spec logger unassignments]
+  (doall (map #(unassign-role! db-spec logger %) unassignments)))
+
+;; -----------------------------------------------------------
 (defn has-permission
   [db-spec logger user-id resource-id context-type permission-name]
   (let [;; WITH RECURSE construct Inspired by familiy tree example at
         ;; https://sqlite.org/lang_with.html
-        query "WITH super_admin AS (
-                       SELECT
-                           count(user_id) > 0 as super_admin
-                       FROM
-                           rbac_super_admin
-                       WHERE
-                           user_id = ?
-                   ), has_permission AS (
-                       SELECT
-                           true = EVERY (rrp.permission_value > 0) as has_permission
-                       FROM
-                           rbac_context rc
-                       INNER JOIN
-                           resource res ON rc.resource_id = res.id
-                       INNER JOIN
-                           rbac_role_assignment rra ON rc.id = rra.context_id
-                       INNER JOIN
-                           rbac_role rr ON rr.id = rra.role_id
-                       INNER JOIN
-                           rbac_role_permission rrp ON rrp.role_id = rr.id
-                       INNER JOIN
-                           rbac_permission rp ON rp.id = rrp.permission_id
-                       WHERE
-                           rra.user_id = ?
-                           AND
-                           rp.name = ?
-                           AND
-                           rra.context_id = ANY (SELECT
-                                                     rc.id
-                                                 FROM
-                                                     rbac_context rc
-                                                 WHERE
-                                                     rc.id = ANY (WITH RECURSIVE
-                                                                    parent_of(id, resource_id, context_type_name, parent) AS
-                                                                      (SELECT
-                                                                           id, resource_id, context_type_name, parent
-                                                                       FROM
-                                                                           rbac_context),
-                                                                    ancestor_of_context(id, resource_id) AS
-                                                                      (SELECT
-                                                                          parent_of.parent, parent_of.resource_id, parent_of.context_type_name
-                                                                       FROM
-                                                                          parent_of
-                                                                       WHERE
-                                                                          (resource_id = ? AND context_type_name = ?)
-                                                                       UNION ALL
-                                                                       SELECT
-                                                                          parent_of.parent, parent_of.resource_id, parent_of.context_type_name
-                                                                       FROM
-                                                                          parent_of
-                                                                       JOIN
-                                                                          ancestor_of_context USING (id))
-                                                                   SELECT
-                                                                       rbac_context.id
-                                                                   FROM
-                                                                       rbac_context, ancestor_of_context
-                                                                   WHERE
-                                                                       ancestor_of_context.id = rbac_context.id)
-                                                     OR
-                                                        (rc.resource_id = ? AND rc.context_type_name = ?))
-                   )
-               SELECT * FROM super_admin CROSS JOIN has_permission;"
-        {:keys [success? return-values]} (sql-utils/sql-query db-spec nil
-                                                              [query
-                                                               user-id
-                                                               user-id
-                                                               (kw->str permission-name)
-                                                               resource-id
-                                                               (kw->str context-type)
-                                                               resource-id
-                                                               (kw->str context-type)])]
+        ancestors {:with-recursive
+                   [[[:parent-of {:columns [:id :resource-id :context-type-name :parent]}]
+                     {:select [:id :resource-id :context-type-name :parent]
+                      :from [:rbac-context]}]
+                    [[:ancestor-of-context {:columns [:id, :resource-id]}]
+                     {:union-all
+                      [{:select [:parent-of.parent
+                                 :parent_of.resource-id
+                                 :parent_of.context-type-name]
+                        :from [:parent-of]
+                        :where [:and
+                                [:= :resource-id resource-id]
+                                [:= :context-type-name (kw->str context-type-name)]]}
+                       {:select [:parent-of.parent
+                                 :parent_of.resource-id
+                                 :parent_of.context-type-name]
+                        :from [:parent-of]
+                        :join [:ancestor-of-context
+                               [:using :id]]}]}]]
+                   :select [:rbac-context.id]
+                   :from [:rbac-context :ancestor-of-context]
+                   :where [:= :ancestor-of-context.id :rbac-context.id]}
+        applicable-contexts {:select [:rc.id]
+                             :from [[:rbac-context :rc]]
+                             :where [:or
+                                     [:and
+                                      [:= :rc.resource-id resource-id]
+                                      [:= :rc.context-type-name (kw->str context-type-name)]]
+                                     [:= :rc.id (hsql/call :any ancestors)]]}
+        query (hsql/format
+               {:with
+                [[:super-admin
+                  {:select [[(hsql/call :exists {:select [:user-id]
+                                                 :from [:rbac-super-admin]
+                                                 :where [:= :user-id user-id]})
+                             :super-admin]]}]
+                 [:has-permission
+                  {:select [[(hsql/call :every #sql/raw "rrp.permission_value > 0")
+                             :has-permission]]
+                   :from [[:rbac-context :rc]]
+                   :join [[:resource :res] [:= :res.id :rc.resource-id]
+                          [:rbac_role_assignment :rra] [:= :rra.context-id :rc.id]
+                          [:rbac_role :rr] [:= :rr.id :rra.role-id]
+                          [:rbac_role_permission :rrp] [:= :rrp.role-id :rr.id]
+                          [:rbac_permission :rp] [:= :rp.id :rrp.permission-id]]
+                   :where [:and
+                           [:= :rra.user-id user-id]
+                           [:= :rp.name (kw->str permission-name)]
+                           [:= :rra.context-id (hsql/call :any applicable-contexts)]]}]]
+                :select [:*]
+                :from [:super-admin]
+                :cross-join [:has-permission]})
+        {:keys [success? return-values]} (sql-utils/sql-query db-spec logger query)]
     (cond
       (not success?) false
       (empty? return-values) false
