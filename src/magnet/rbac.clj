@@ -753,7 +753,7 @@
                                                                   insert-keys
                                                                   insert-values)]
     (if (and success? (> inserted-values 0))
-      {:success? true :super-admin user-id}
+      {:success? true}
       {:success? false})))
 
 (s/def ::super-admin?-args (s/cat :db-spec ::db-spec
@@ -966,7 +966,7 @@
   :ret  ::has-permission-ret)
 
 (defn has-permission
-  [db-spec logger user-id resource-id context-type permission-name]
+  [db-spec logger user-id resource-id context-type-name permission-name]
   (let [;; WITH RECURSE construct Inspired by familiy tree example at
         ;; https://sqlite.org/lang_with.html
         ancestors {:with-recursive
