@@ -6,7 +6,6 @@
             [clojure.test :refer :all]
             [duct.logger :as logger]
             [magnet.rbac :as rbac]
-            [magnet.rbac.caching :as rbac-caching]
             [magnet.sql-utils :as sql-utils])
   (:import [java.util UUID]))
 
