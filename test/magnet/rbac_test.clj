@@ -1,6 +1,5 @@
 (ns magnet.rbac-test
   (:require [clojure.java.io :as io]
-            [clojure.java.jdbc :as jdbc]
             [clojure.spec.test.alpha :as stest]
             [clojure.test :refer :all]
             [duct.logger :as logger]
@@ -127,10 +126,10 @@
 
 (defn- setup-app-objects []
   (sql-utils/sql-execute! db nil (slurp (io/resource app-tables-up-sql)))
-  (dorun (map (fn [[k v]]
+  (dorun (map (fn [[_ v]]
                 (sql-utils/sql-insert! db nil :appuser (keys v) (vals v)))
               app-users))
-  (dorun (map (fn [[k v]]
+  (dorun (map (fn [[_ v]]
                 (sql-utils/sql-insert! db nil :resource (keys v) (vals v)))
               app-resources)))
 
@@ -160,7 +159,7 @@
         application-ctx (:context (rbac/create-context! db logger application-context nil))
         organization-1-ctx (:context (rbac/create-context! db logger organization-1-context application-ctx))
         plant-1-ctx (:context (rbac/create-context! db logger plant-1-context organization-1-ctx))
-        asset-1-ctx (:context (rbac/create-context! db logger asset-1-context plant-1-ctx))
+        _ (:context (rbac/create-context! db logger asset-1-context plant-1-ctx))
         _ (rbac/create-roles! db logger roles)
         _ (rbac/create-permissions! db logger permissions)
         ;;

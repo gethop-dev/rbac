@@ -1,6 +1,5 @@
 (ns magnet.rbac
   (:require [clojure.spec.alpha :as s]
-            [duct.logger :as logger]
             [honeysql.core :as hsql]
             [magnet.sql-utils :as sql-utils])
   (:import [java.util UUID]))
@@ -419,7 +418,7 @@
 
 (defn create-context!
   "To be able to create the top-level context, pass `nil` for PARENT-CONTEXT"
-  [db-spec logger {:keys [context-type-name resource-id] :as context} parent-context]
+  [db-spec logger context parent-context]
   (let [context (-> context
                     (assoc :id (UUID/randomUUID))
                     (assoc :parent (:id parent-context)))
@@ -771,10 +770,11 @@
   (let [query (hsql/format {:select [:user-id]
                             :from [:rbac-super-admin]
                             :where [:= :user-id user-id]})
-        {:keys [success? return-values]} (sql-utils/sql-query db-spec logger query)]
-    (if (and success? (> (count return-values) 0))
-      {:success? true :super-admin? true}
-      (if success?
+        {:keys [success? return-values] :as result} (sql-utils/sql-query db-spec logger query)]
+    (if-not success?
+      result
+      (if (> (count return-values) 0)
+        {:success? true :super-admin? true}
         {:success? true :super-admin? false}))))
 
 (s/def ::remove-super-admin-args (s/cat :db-spec ::db-spec
@@ -902,7 +902,7 @@
   :ret  ::assign-role!-ret)
 
 (defn assign-role!
-  [db-spec logger {:keys [role context user] :as role-assignment}]
+  [db-spec logger {:keys [role context user]}]
   (let [insert-keys [:role-id :context-id :user-id]
         insert-values [(:id role) (:id context) (:id user)]
         {:keys [success? inserted-values]} (sql-utils/sql-insert! db-spec logger
@@ -935,7 +935,7 @@
   :ret  ::unassign-role!-ret)
 
 (defn unassign-role!
-  [db-spec logger {:keys [role context user] :as role-assignment}]
+  [db-spec logger {:keys [role context user]}]
   (delete-where-x! db-spec logger :rbac-role-assignment [:and
                                                          [:= :role-id (:id role)]
                                                          [:= :context-id (:id context)]
