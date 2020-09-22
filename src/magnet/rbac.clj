@@ -1005,26 +1005,28 @@
         query (hsql/format
                {:with
                 [[:super-admin
-                  {:select [[(hsql/call :exists {:select [:user-id]
-                                                 :from [:rbac-super-admin]
-                                                 :where [:= :user-id user-id]})
+                  {:select [[user-id :user-id]
+                            [(hsql/call :exists {:select [:user-id]
+                                                 :from   [:rbac-super-admin]
+                                                 :where  [:= :user-id user-id]})
                              :super-admin]]}]
                  [:has-permission
-                  {:select [[(hsql/call :every #sql/raw "rrp.permission_value > 0")
+                  {:select [[user-id :user-id]
+                            [#sql/raw "COALESCE(EVERY(rrp.permission_value > 0), false)"
                              :has-permission]]
-                   :from [[:rbac-context :rc]]
-                   :join [[:resource :res] [:= :res.id :rc.resource-id]
-                          [:rbac_role_assignment :rra] [:= :rra.context-id :rc.id]
-                          [:rbac_role :rr] [:= :rr.id :rra.role-id]
-                          [:rbac_role_permission :rrp] [:= :rrp.role-id :rr.id]
-                          [:rbac_permission :rp] [:= :rp.id :rrp.permission-id]]
-                   :where [:and
-                           [:= :rra.user-id user-id]
-                           [:= :rp.name (kw->str permission-name)]
-                           [:= :rra.context-id (hsql/call :any applicable-contexts)]]}]]
-                :select [:*]
-                :from [:super-admin]
-                :cross-join [:has-permission]})
+                   :from   [[:rbac-context :rc]]
+                   :join   [[:rbac_role_assignment :rra] [:= :rra.context-id :rc.id]
+                            [:rbac_role :rr] [:= :rr.id :rra.role-id]
+                            [:rbac_role_permission :rrp] [:= :rrp.role-id :rr.id]
+                            [:rbac_permission :rp] [:= :rp.id :rrp.permission-id]]
+                   :where  [:and
+                            [:= :rra.user-id user-id]
+                            [:= :rp.name (kw->str permission-name)]
+                            [:= :rra.context-id (hsql/call :any applicable-contexts)]]}]]
+                :select [[:sa.super-admin :super-admin]
+                         [:hp.has-permission :has-permission]]
+                :from   [[:super-admin :sa]]
+                :join   [[:has-permission :hp] [:= :hp.user-id :sa.user-id]]})
         {:keys [success? return-values]} (sql-utils/sql-query db-spec logger query)]
     (cond
       (not success?) false
