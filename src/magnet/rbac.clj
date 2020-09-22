@@ -790,11 +790,15 @@
   (delete-where-x! db-spec logger :rbac-super-admin [:= :user-id user-id]))
 
 ;; -----------------------------------------------------------
+(s/def ::permission-value #{:permission-granted :permission-denied})
 (defn- set-perm-with-value
   [db-spec logger role permission permission-value]
-  (let [perm-val (cond
-                   (= :permission-granted permission-value) 1
-                   (= :permission-denied permission-value) -1)
+  {:pre [(s/valid? ::role role)
+         (s/valid? ::permission permission)
+         (s/valid? ::permission-value permission-value)]}
+  (let [perm-val (case permission-value
+                   :permission-granted 1
+                   :permission-denied -1)
         role-permission {:role-id (:id role)
                          :permission-id (:id permission)
                          :permission-value perm-val}
