@@ -6,7 +6,7 @@
   :min-lein-version "2.9.0"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [magnet/sql-utils "0.4.11"]
-                 [honeysql "1.0.444"]]
+                 [honeysql "1.0.461"]]
   :deploy-repositories [["snapshots" {:url "https://clojars.org/repo"
                                       :username :env/clojars_username
                                       :password :env/clojars_password
