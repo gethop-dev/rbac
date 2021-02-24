@@ -1,4 +1,4 @@
-(defproject magnet/rbac "0.1.0-alpha-3-SNAPSHOT"
+(defproject magnet/rbac "0.1.0-alpha-3"
   :description "A Clojure library designed to provide role-based access control (RBAC)"
   :url "https://github.com/magnetcoop/rbac"
   :license {:name "Mozilla Public Licence 2.0"
