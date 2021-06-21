@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS rbac_role_assignment (
     role_id uuid NOT NULL REFERENCES rbac_role(id) ON UPDATE CASCADE,
     context_id uuid NOT NULL REFERENCES rbac_context(id) ON UPDATE CASCADE,
     user_id uuid NOT NULL,
-    PRIMARY KEY (role_id, context_id));
+    PRIMARY KEY (role_id, context_id, user_id));
 -- ;;
 CREATE TABLE IF NOT EXISTS rbac_super_admin (
     user_id uuid PRIMARY KEY);
