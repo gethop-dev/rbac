@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `get-role-assignments-by-user` method to get list of role+contexts assigned
+  to a specific user. It additionaly returns the `role-name`,
+  `role-description` and `context-type-name`.
+### Fixed
+- Limitation of rbac_role_assigment primary key (issue [#1](https://github.com/magnetcoop/rbac/issues/1))
 
 ## [0.1.0.alpha-3] - 2021-02-24
 ### Changed

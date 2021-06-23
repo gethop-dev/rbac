@@ -251,6 +251,11 @@
   [db-spec logger names]
   (doall (map #(delete-role-by-name! db-spec logger %) names)))
 
+(s/def ::get-roles-args (s/cat :db-spec ::db-spec
+                               :logger ::logger))
+(s/def ::get-roles-ret (s/keys :req-un [::success?]
+                               :opt-un [::roles]))
+
 ;; -----------------------------------------------------------
 (defn- context-type->db-context-type
   [context-type]
@@ -956,6 +961,38 @@
 (defn unassign-roles!
   [db-spec logger unassignments]
   (doall (map #(unassign-role! db-spec logger %) unassignments)))
+
+(s/def ::get-role-assignments-by-user-args (s/cat :db-spec ::db-spec
+                                                  :logger ::logger
+                                                  :user-id ::id
+                                                  ::context-id ::id))
+(s/def ::get-role-assignments-by-user-ret (s/keys :req-un [::success?]
+                                                  :opt-un [::role-assignments]))
+
+(s/fdef get-role-assignments-by-user
+  :args ::get-role-assignments-by-user-args
+  :ret  ::get-role-assignments-by-user-ret)
+
+(defn get-role-assignments-by-user
+  ([db-spec logger user-id]
+   (get-role-assignments-by-user db-spec logger user-id nil))
+  ([db-spec logger user-id context-id]
+   (let [query {:select [:assignment.*
+                         [:role.name :role-name]
+                         [:role.description :role-description]
+                         :context.context-type-name]
+                :from [[:rbac-role-assignment :assignment]]
+                :join [[:rbac-role :role] [:= :assignment.role-id :role.id]
+                       [:rbac-context :context] [:= :assignment.context-id :context.id]]
+                :where [:and
+                        [:= :user-id user-id]
+                        (when context-id
+                          [:= :context-id context-id])]}
+         {:keys [success? return-values]}
+         (sql-utils/sql-query db-spec logger (hsql/format query))]
+     (if success?
+       {:success? success? :role-assignments return-values}
+       {:success? false}))))
 
 ;; -----------------------------------------------------------
 (s/def ::has-permission-args (s/cat :db-spec ::db-spec
