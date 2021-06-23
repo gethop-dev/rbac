@@ -894,6 +894,13 @@
   (doall (map #(remove-role-permission! db-spec logger role %) permissions)))
 
 ;; -----------------------------------------------------------
+
+(defn- db-role-assignment->role-assignment [db-role-assignment]
+  (-> db-role-assignment
+      (update :role sql-utils/pg-json->coll)
+      (update :context sql-utils/pg-json->coll)
+      (update :user sql-utils/pg-json->coll)))
+
 (s/def ::role-assignment (s/keys :req-un [::role
                                           ::context
                                           ::user]))
@@ -972,10 +979,19 @@
   ([db-spec logger user-id]
    (get-role-assignments-by-user db-spec logger user-id nil))
   ([db-spec logger user-id context-id]
-   (let [query {:select [:assignment.*
-                         [:role.name :role-name]
-                         [:role.description :role-description]
-                         :context.context-type-name]
+   (let [query {:select [[(hsql/call :json_build_object
+                                     "id" :role.id
+                                     "name" :role.name
+                                     "description" :role.description)
+                          :role]
+                         [(hsql/call :json_build_object
+                                     "id" :context.id
+                                     "resource-id" :context.resource-id
+                                     "context-type-name" :context.context-type-name)
+                          :context]
+                         [(hsql/call :json_build_object
+                                     "id" :assignment.user-id)
+                          :user]]
                 :from [[:rbac-role-assignment :assignment]]
                 :join [[:rbac-role :role] [:= :assignment.role-id :role.id]
                        [:rbac-context :context] [:= :assignment.context-id :context.id]]
@@ -986,7 +1002,8 @@
          {:keys [success? return-values]}
          (sql-utils/sql-query db-spec logger (hsql/format query))]
      (if success?
-       {:success? success? :role-assignments return-values}
+       {:success? success?
+        :role-assignments (map db-role-assignment->role-assignment return-values)}
        {:success? false}))))
 
 ;; -----------------------------------------------------------
