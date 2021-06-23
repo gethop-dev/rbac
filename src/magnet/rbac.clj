@@ -899,7 +899,11 @@
   (-> db-role-assignment
       (update :role sql-utils/pg-json->coll)
       (update :context sql-utils/pg-json->coll)
-      (update :user sql-utils/pg-json->coll)))
+      (update :user sql-utils/pg-json->coll)
+      (update-in [:role :id] #(UUID/fromString %))
+      (update-in [:context :id] #(UUID/fromString %))
+      (update-in [:context :resource-id] #(UUID/fromString %))
+      (update-in [:user :id] #(UUID/fromString %))))
 
 (s/def ::role-assignment (s/keys :req-un [::role
                                           ::context
