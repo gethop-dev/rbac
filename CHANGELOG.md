@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.0-alpha-6] - 2021-06-23
 ### Fixed
 - Fix `get-role-assignments-by-user` methods return structure
   'ids'. The 'ids' were being returned as 'string's instead of
