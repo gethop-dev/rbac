@@ -251,11 +251,6 @@
   [db-spec logger names]
   (doall (map #(delete-role-by-name! db-spec logger %) names)))
 
-(s/def ::get-roles-args (s/cat :db-spec ::db-spec
-                               :logger ::logger))
-(s/def ::get-roles-ret (s/keys :req-un [::success?]
-                               :opt-un [::roles]))
-
 ;; -----------------------------------------------------------
 (defn- context-type->db-context-type
   [context-type]
