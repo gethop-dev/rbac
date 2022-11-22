@@ -32,6 +32,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install unzip
+        run: apt install unzip
+
       - name: Install clj-kondo
         uses: DeLaGuardo/setup-clojure@10.1
         with:
