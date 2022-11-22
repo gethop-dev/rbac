@@ -1,7 +1,7 @@
-(ns magnet.rbac
+(ns dev.gethop.rbac
   (:require [clojure.spec.alpha :as s]
             [honeysql.core :as hsql]
-            [magnet.sql-utils :as sql-utils])
+            [dev.gethop.sql-utils :as sql-utils])
   (:import [java.util UUID]))
 
 (defn- kw->str

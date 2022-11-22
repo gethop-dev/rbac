@@ -1,16 +1,16 @@
-(ns magnet.rbac-test
+(ns dev.gethop.rbac-test
   (:require [clojure.java.io :as io]
             [clojure.spec.test.alpha :as stest]
             [clojure.test :refer :all]
             [duct.logger :as logger]
-            [magnet.rbac :as rbac]
-            [magnet.sql-utils :as sql-utils])
+            [dev.gethop.rbac :as rbac]
+            [dev.gethop.sql-utils :as sql-utils])
   (:import [java.util UUID]))
 
 (def ^:const db (System/getenv "JDBC_DATABASE_URL"))
 
 (defn enable-instrumentation []
-  (-> (stest/enumerate-namespace 'magnet.rbac) stest/instrument))
+  (-> (stest/enumerate-namespace 'dev.gethop.rbac) stest/instrument))
 
 (defrecord AtomLogger [logs]
   logger/Logger
@@ -113,10 +113,10 @@
     :context-type-name :asset}])
 
 (defonce ^:const rbac-tables-up-sql
-  "magnet.rbac/rbac-tables.pg.up.sql")
+  "dev.gethop.rbac/rbac-tables.pg.up.sql")
 
 (defonce ^:const rbac-tables-down-sql
-  "magnet.rbac/rbac-tables.pg.down.sql")
+  "dev.gethop.rbac/rbac-tables.pg.down.sql")
 
 (defonce ^:const app-tables-up-sql
   "_files/app-tables.up.sql")

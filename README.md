@@ -1,7 +1,7 @@
-[![Build Status](https://api.travis-ci.com/magnetcoop/rbac.svg?branch=master)](https://travis-ci.com/magnetcoop/rbac)
-[![Clojars Project](https://img.shields.io/clojars/v/magnet/rbac.svg)](https://clojars.org/magnet/rbac)
+[![Build Status](https://github.com/gethop-dev/rbac/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/gethop-dev/rbac/actions/workflows/ci-cd.yml)
+[![Clojars Project](https://img.shields.io/clojars/v/dev.gethop/rbac.svg)](https://clojars.org/dev.gethop/rbac)
 
-# magnet/rbac
+# dev.gethop/rbac
 
 A Clojure library designed to provide role-based access control (RBAC). 
 
@@ -12,12 +12,12 @@ This infrastructure is developed to offer a proper complete and simple rbac func
 
 ## Installation
 
-[![Clojars Project](https://clojars.org/magnet/rbac/latest-version.svg)](https://clojars.org/magnet/rbac)
+[![Clojars Project](https://clojars.org/dev.gethop/rbac/latest-version.svg)](https://clojars.org/dev.gethop/rbac)
 
 
 ## License
 
-Copyright (c) 2019 Magnet S Coop.
+Copyright (c) 2022 HOP Technologies
 
 This Source Code Form is subject to the terms of the Mozilla Public License,
 v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain

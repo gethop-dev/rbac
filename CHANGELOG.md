@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to a specific user. It additionaly returns the `role-name`,
   `role-description` and `context-type-name`.
 ### Fixed
-- Limitation of rbac_role_assigment primary key (issue [#1](https://github.com/magnetcoop/rbac/issues/1))
+- Limitation of rbac_role_assigment primary key (issue [#1](https://github.com/gethop-dev/rbac/issues/1))
 
 ## [0.1.0.alpha-3] - 2021-02-24
 ### Changed
@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0.alpha-1] - 2020-08-13
 - First public release. This is alpha quality software.
 
-[Unreleased]: https://github.com/magnetcoop/rbac/compare/v0.1.0.alpha-3...HEAD
-[0.1.0.alpha-3]: https://github.com/magnetcoop/rbac/compare/v0.1.0.alpha-2...v0.1.0.alpha-3
-[0.1.0.alpha-2]: https://github.com/magnetcoop/rbac/compare/v0.1.0.alpha-1...v0.1.0.alpha-2
-[0.1.0.alpha-1]: https://github.com/magnetcoop/rbac/releases/tag/v0.1.0.alpha-1
+[Unreleased]: https://github.com/gethop-dev/rbac/compare/v0.1.0.alpha-3...HEAD
+[0.1.0.alpha-3]: https://github.com/gethop-dev/rbac/compare/v0.1.0.alpha-2...v0.1.0.alpha-3
+[0.1.0.alpha-2]: https://github.com/gethop-dev/rbac/compare/v0.1.0.alpha-1...v0.1.0.alpha-2
+[0.1.0.alpha-1]: https://github.com/gethop-dev/rbac/releases/tag/v0.1.0.alpha-1
