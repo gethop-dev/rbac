@@ -1,0 +1,56 @@
+name: ci-cd
+on:
+  push:
+    paths-ignore:
+      - "README.md"
+      - "CONTRIBUTING.md"
+      - "CHANGELOG.md"
+      - "LICENSE"
+      - ".gitignore"
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    container: clojure:temurin-17-lein-2.9.8-focal
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      LEIN_ROOT: "true"
+      CLOJARS_USERNAME: ${{ secrets.CLOJARS_USERNAME }}
+      CLOJARS_PASSWORD: ${{ secrets.CLOJARS_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install clj-kondo
+        uses: DeLaGuardo/setup-clj-kondo@master
+        with:
+          version: '2020.10.05'
+
+      - name: Create rbac DB
+        run: docker exec -it postgres psql -h localhost -c 'create database rbac;' -U postgres
+
+      - name: Check formatting
+        run: lein cljfmt check
+
+      - name: Lint
+        run: clj-kondo --lint src --lint test && lein eastwood
+
+      - name: Test
+        env:
+          JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/rbac?user=postgres&password=sa&reWriteBatchedInserts=true
+        run: lein test :all
+
+      - name: Deploy Jar to Clojars
+        if: contains(github.ref, 'refs/tags/')
+        run: lein deploy
