@@ -35,7 +35,7 @@ jobs:
       - name: Install clj-kondo
         uses: DeLaGuardo/setup-clj-kondo@master
         with:
-          version: '2022.10.05'
+          version: '2022.11.02'
 
       - name: Create rbac DB
         run: docker exec -it postgres psql -h localhost -c 'create database rbac;' -U postgres
