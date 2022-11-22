@@ -1,7 +1,7 @@
 (ns dev.gethop.rbac
   (:require [clojure.spec.alpha :as s]
-            [honeysql.core :as hsql]
-            [dev.gethop.sql-utils :as sql-utils])
+            [dev.gethop.sql-utils :as sql-utils]
+            [honeysql.core :as hsql])
   (:import [java.util UUID]))
 
 (defn- kw->str
@@ -270,7 +270,7 @@
                                           :logger ::logger
                                           :context-type ::context-type))
 (s/def ::create-context-type!-ret (s/keys :req-un [::success?]
-                                          :opt-up [::context-type]))
+                                          :opt-un [::context-type]))
 (s/fdef create-context-type!
   :args ::create-context-type!-args
   :ret  ::create-context-type!-ret)
@@ -305,7 +305,7 @@
 (s/def ::get-context-types-args (s/cat :db-spec ::db-spec
                                        :logger ::logger))
 (s/def ::get-context-types-ret (s/keys :req-un [::success?]
-                                       :opt-up [::context-types]))
+                                       :opt-un [::context-types]))
 (s/fdef get-context-types
   :args ::get-context-types-args
   :ret  ::get-context-types-ret)
@@ -337,7 +337,7 @@
                                           :logger ::logger
                                           :context-type ::context-type))
 (s/def ::update-context-type!-ret (s/keys :req-un [::success?]
-                                          :opt-up [::context-type]))
+                                          :opt-un [::context-type]))
 (s/fdef update-context-type!
   :args ::update-context-type!-args
   :ret  ::update-context-type!-ret)
@@ -357,7 +357,7 @@
                                            :logger ::logger
                                            :context-types ::context-types))
 (s/def ::update-context-types!-ret (s/keys :req-un [::success?]
-                                           :opt-up [::context-types]))
+                                           :opt-un [::context-types]))
 (s/fdef update-context-types!
   :args ::update-context-types!-args
   :ret  ::update-context-types!-ret)
@@ -530,14 +530,14 @@
 (defn- perm->db-perm
   [perm]
   (-> perm
-      (update :name #(kw->str %))
-      (update :context-type-name #(kw->str %))))
+      (update :name kw->str)
+      (update :context-type-name kw->str)))
 
 (defn- db-perm->perm
   [db-perm]
   (-> db-perm
-      (update :name #(str->kw %))
-      (update :context-type-name #(str->kw %))))
+      (update :name str->kw)
+      (update :context-type-name str->kw)))
 
 (s/def ::permission-name ::name)
 (s/def ::permission (s/keys :req-un [::name

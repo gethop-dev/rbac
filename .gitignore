@@ -16,4 +16,3 @@ pom.xml.asc
 /profiles.clj
 /.eastwood
 .DS_Store
-/.clj-kondo

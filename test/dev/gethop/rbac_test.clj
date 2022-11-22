@@ -2,9 +2,9 @@
   (:require [clojure.java.io :as io]
             [clojure.spec.test.alpha :as stest]
             [clojure.test :refer :all]
-            [duct.logger :as logger]
             [dev.gethop.rbac :as rbac]
-            [dev.gethop.sql-utils :as sql-utils])
+            [dev.gethop.sql-utils :as sql-utils]
+            [duct.logger :as logger])
   (:import [java.util UUID]))
 
 (def ^:const db (System/getenv "JDBC_DATABASE_URL"))
@@ -14,7 +14,7 @@
 
 (defrecord AtomLogger [logs]
   logger/Logger
-  (-log [logger level ns-str file line id event data]
+  (-log [_logger level ns-str file line _id event data]
     (swap! logs conj [level ns-str file line event data])))
 
 (defonce ^:const app-users
