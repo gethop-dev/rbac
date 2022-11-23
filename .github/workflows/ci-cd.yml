@@ -11,7 +11,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-20.04
-    container: clojure:temurin-17-lein-2.9.8-focal
     services:
       postgres:
         image: postgres
@@ -32,8 +31,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install unzip
-        run: apt-get update && apt-get install unzip
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Clojure Tools
+        uses: DeLaGuardo/setup-clojure@5.1
+        with:
+          lein: 2.9.8
 
       - name: Install clj-kondo
         uses: DeLaGuardo/setup-clojure@10.1
@@ -41,7 +48,7 @@ jobs:
           clj-kondo: 2022.11.02
 
       - name: Create rbac DB
-        run: docker exec -it postgres psql -h localhost -c 'create database rbac;' -U postgres
+        run: psql -h localhost -c 'create database rbac;' -U postgres
 
       - name: Check formatting
         run: lein cljfmt check
