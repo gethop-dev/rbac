@@ -38,7 +38,7 @@ jobs:
           java-version: '17'
 
       - name: Install Clojure Tools
-        uses: DeLaGuardo/setup-clojure@5.1
+        uses: DeLaGuardo/setup-clojure@10.1
         with:
           lein: 2.9.8
           clj-kondo: 2022.11.02
