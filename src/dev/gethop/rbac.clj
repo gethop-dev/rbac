@@ -895,15 +895,21 @@
 
 ;; -----------------------------------------------------------
 
-(defn- db-role-assignment->role-assignment [db-role-assignment]
+(defn- db-role-assignment->role-assignment
+  [{:keys [role-id role-name role-description
+           context-id context-resource-id context-type-name
+           assignment-user-id] :as db-role-assignment}]
+
   (-> db-role-assignment
-      (update :role sql-utils/pg-json->coll)
-      (update :context sql-utils/pg-json->coll)
-      (update :user sql-utils/pg-json->coll)
-      (update-in [:role :id] #(UUID/fromString %))
-      (update-in [:context :id] #(UUID/fromString %))
-      (update-in [:context :resource-id] #(UUID/fromString %))
-      (update-in [:user :id] #(UUID/fromString %))))
+      (assoc :role {:id role-id
+                    :name role-name
+                    :description role-description})
+      (assoc :context {:id context-id
+                       :resource-id context-resource-id
+                       :context-type-name context-type-name})
+      (assoc :user {:id assignment-user-id})
+      (dissoc :role-id :role-name :role-description :context-id
+              :context-resource-id :context-type-name :assignment-user-id)))
 
 (s/def ::role-assignment (s/keys :req-un [::role
                                           ::context
@@ -983,19 +989,13 @@
   ([db-spec logger user-id]
    (get-role-assignments-by-user db-spec logger user-id nil))
   ([db-spec logger user-id context-id]
-   (let [query {:select [[(hsql/call :json_build_object
-                                     "id" :role.id
-                                     "name" :role.name
-                                     "description" :role.description)
-                          :role]
-                         [(hsql/call :json_build_object
-                                     "id" :context.id
-                                     "resource-id" :context.resource-id
-                                     "context-type-name" :context.context-type-name)
-                          :context]
-                         [(hsql/call :json_build_object
-                                     "id" :assignment.user-id)
-                          :user]]
+   (let [query {:select [[:role.id :role-id]
+                         [:role.name :role-name]
+                         [:role.description :role-description]
+                         [:context.id :context-id]
+                         [:context.resource-id :context-resource-id]
+                         [:context.context-type-name :context-type-name]
+                         [:assignment.user-id :assignment-user-id]]
                 :from [[:rbac-role-assignment :assignment]]
                 :join [[:rbac-role :role] [:= :assignment.role-id :role.id]
                        [:rbac-context :context] [:= :assignment.context-id :context.id]]

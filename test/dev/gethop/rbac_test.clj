@@ -160,7 +160,7 @@
         organization-1-ctx (:context (rbac/create-context! db logger organization-1-context application-ctx))
         plant-1-ctx (:context (rbac/create-context! db logger plant-1-context organization-1-ctx))
         _ (:context (rbac/create-context! db logger asset-1-context plant-1-ctx))
-        _ (rbac/create-roles! db logger roles)
+        created-roles (rbac/create-roles! db logger roles)
         _ (rbac/create-permissions! db logger permissions)
         ;;
         _ (rbac/grant-role-permissions! db logger
@@ -237,6 +237,27 @@
             permission-name :application/manage
             has-permission (rbac/has-permission db logger user-id resource-id context-type-name permission-name)]
         (is (= has-permission true))))
+
+    (testing "Check role of app-user-1 has expected value for application context"
+      (let [user-id (-> app-users :app-user-1 :id)
+            role-name :application/manager
+            {:keys [success? role-assignments]} (rbac/get-role-assignments-by-user
+                                                 db
+                                                 logger
+                                                 user-id
+                                                 (:id application-ctx))
+            app-user-role (first role-assignments)
+            role-data (some #(when (= role-name (-> % :role :name keyword))
+                               (:role %))
+                            created-roles)
+            parsed-app-user-role (when (seq app-user-role)
+                                   (-> app-user-role
+                                       (update-in [:role :name] keyword)
+                                       (update-in [:context :context-type-name] keyword)))]
+        (is (true? success?))
+        (is (= parsed-app-user-role {:role role-data
+                                     :context (dissoc application-ctx :parent)
+                                     :user {:id user-id}}))))
 
     (testing "app-user-1 has :organization/manage permission on :organization-1 resource"
       (let [user-id (-> app-users :app-user-1 :id)
