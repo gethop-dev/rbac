@@ -1,5 +1,6 @@
 (ns dev.gethop.rbac
   (:require [clojure.spec.alpha :as s]
+            [clojure.string :as str]
             [dev.gethop.sql-utils :as sql-utils]
             [honeysql.core :as hsql])
   (:import [java.util UUID]))
@@ -54,6 +55,7 @@
 (s/def ::db-spec ::sql-utils/db-spec)
 (s/def ::logger ::sql-utils/logger)
 (s/def ::id uuid?)
+(s/def ::string-id (s/and string? (complement str/blank?)))
 (s/def ::ids (s/coll-of ::id))
 (s/def ::name keyword?)
 (s/def ::names (s/coll-of ::names))
@@ -401,7 +403,9 @@
   (-> db-context
       (update :context-type-name str->kw)))
 
-(s/def ::resource-id uuid?)
+(s/def ::resource-id (s/or :string-id ::string-id
+                           :int-id pos-int?
+                           :uuid uuid?))
 (s/def ::parent-id ::id)
 (s/def ::context (s/keys :req-un [::context-type-name
                                   ::resource-id]
@@ -735,9 +739,12 @@
   (doall (map #(delete-permission-by-name! db-spec logger %) names)))
 
 ;; -----------------------------------------------------------
+(s/def ::user-id (s/or :string-id ::string-id
+                       :int-id pos-int?
+                       :uuid uuid?))
 (s/def ::add-super-admin-args (s/cat :db-spec ::db-spec
                                      :logger ::logger
-                                     :user-id ::id))
+                                     :user-id ::user-id))
 (s/def ::add-super-admin-ret (s/keys :req-un [::success?]))
 (s/fdef add-super-admin
   :args ::add-super-admin-args
@@ -757,7 +764,7 @@
 
 (s/def ::super-admin?-args (s/cat :db-spec ::db-spec
                                   :logger ::logger
-                                  :user-id ::id))
+                                  :user-id ::user-id))
 (s/def ::super-admin? boolean)
 (s/def ::super-admin?-ret (s/keys :req-un [::success?]
                                   :opt-un [::super-admin?]))
@@ -779,7 +786,7 @@
 
 (s/def ::remove-super-admin-args (s/cat :db-spec ::db-spec
                                         :logger ::logger
-                                        :user-id ::id))
+                                        :user-id ::user-id))
 (s/def ::remove-super-admin-ret (s/keys :req-un [::success?]))
 (s/fdef remove-super-admin
   :args ::remove-super-admin-args
@@ -976,7 +983,7 @@
 
 (s/def ::get-role-assignments-by-user-args (s/cat :db-spec ::db-spec
                                                   :logger ::logger
-                                                  :user-id ::id
+                                                  :user-id ::user-id
                                                   ::context-id ::id))
 (s/def ::get-role-assignments-by-user-ret (s/keys :req-un [::success?]
                                                   :opt-un [::role-assignments]))
@@ -1013,8 +1020,8 @@
 ;; -----------------------------------------------------------
 (s/def ::has-permission-args (s/cat :db-spec ::db-spec
                                     :logger ::logger
-                                    :user-id ::id
-                                    :resource-id ::id
+                                    :user-id ::user-id
+                                    :resource-id ::resource-id
                                     :context-type-name ::context-type-name
                                     :permission-name ::permission-name))
 (s/def ::has-permission-ret (s/keys :req-un [::success?]))
