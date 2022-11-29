@@ -1,4 +1,4 @@
-(defproject dev.gethop/rbac "0.1.0-alpha-6-SNAPSHOT"
+(defproject dev.gethop/rbac "0.1.0-alpha-7-SNAPSHOT"
   :description "A Clojure library designed to provide role-based access control (RBAC)"
   :url "https://github.com/gethop-dev/rbac"
   :license {:name "Mozilla Public Licence 2.0"

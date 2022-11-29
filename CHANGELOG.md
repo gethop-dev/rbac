@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support string and integer-based id types for User and Resource ids.
 
+### Fixed
+- Avoid code's dependency on PostgreSQL, so any other SQL-compliant DB can be used with this library.
+
 ## [0.1.0-alpha-6] - 2021-06-23
 ### Fixed
 - Fix `get-role-assignments-by-user` methods return structure
